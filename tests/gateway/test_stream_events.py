@@ -106,6 +106,19 @@ def test_tool_preview_truncated_to_cap():
     assert "89ABCDEF" not in lines[0]
 
 
+def test_tool_preview_unlimited_when_max_len_zero():
+    lines = []
+    d = GatewayEventDispatcher(
+        _base_adapter(), _FakeSink(),
+        enqueue_tool_line=lines.append, tool_mode="all", preview_max_len=0,
+    )
+    long_preview = "A" * 200
+    d.dispatch(ToolCallChunk(tool_name="x", preview=long_preview))
+    # preview_max_len=0 means no cap — full preview should appear
+    assert long_preview in lines[0]
+    assert "..." not in lines[0]
+
+
 def test_new_mode_dedups_same_tool():
     lines = []
     d = GatewayEventDispatcher(
